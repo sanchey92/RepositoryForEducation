@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace Platform
 {
@@ -10,36 +11,20 @@ namespace Platform
     {
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<MessageOptions>(options =>
+            {
+                options.CityName = "New York";
+                options.CountryName = "USA";
+            });
         }
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
-            {
                 app.UseDeveloperExceptionPage();
-            }
 
-            app.Use(async (context, next) =>
-            {
-                await next();
-                await context.Response
-                    .WriteAsync($"\nStatus code: {context.Response.StatusCode}");
-            });
+            app.UseMiddleware<LocationMiddleware>();
             
-            app.Use(async (ctx, next) =>
-            {
-                if (ctx.Request.Method == HttpMethods.Get
-                && ctx.Request.Query["custom"] == "true")
-                {
-                    await ctx.Response.WriteAsync("Custom Middleware \n");
-                }
-
-                await next();
-            });
-
-            app.UseMiddleware<QueryStringMiddleware>();
-
             app.UseRouting();
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapGet("/", async context =>
