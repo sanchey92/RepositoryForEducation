@@ -18,5 +18,7 @@ namespace Platform.Services
                 </body>
                 </html>");
         }
+
+        public bool RichOutput => true;
     }
 }
