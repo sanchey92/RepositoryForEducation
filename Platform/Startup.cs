@@ -1,50 +1,43 @@
-using System;
-using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Platform.Services;
 
 namespace Platform
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configService)
         {
-            Configuration = configuration;
+            Configuration = configService;
         }
 
-        private IConfiguration Configuration;
+        private IConfiguration Configuration { get; set; }
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddScoped<ITimeStamper, DefaultTimeStamper>();
-            services.AddScoped<IResponseFormatter, TextResponseFormatter>();
-            services.AddScoped<IResponseFormatter, HtmlResponseFormatter>();
-            services.AddScoped<IResponseFormatter, GuidService>();
+            services.Configure<MessageOptions>(Configuration.GetSection("Location"));
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             app.UseDeveloperExceptionPage();
             app.UseRouting();
+            app.UseMiddleware<LocationMiddleware>();
+
+            app.Use(async (context, next) =>
+            {
+                var defaultDebug = Configuration["Logging:LogLevel:Default"];
+                await context.Response
+                    .WriteAsync($"The config setting is: {defaultDebug}");
+            });
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapGet("/single", async context =>
-                {
-                    var formatter = context.RequestServices.GetService<IResponseFormatter>();
-                    await formatter.Format(context, "Single Service");
-                });
-
                 endpoints.MapGet("/", async context =>
                 {
-                    var formatter = context.RequestServices
-                        .GetServices<IResponseFormatter>()
-                        .First(f => f.RichOutput);
-
-                    await formatter.Format(context, "Multiple Service");
+                    await context.Response.WriteAsync("Hello World!");
                 });
             });
         }

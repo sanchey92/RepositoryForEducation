@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 
 namespace Platform
 {
@@ -29,13 +30,13 @@ namespace Platform
 
     public class LocationMiddleware
     {
-        private readonly RequestDelegate _next;
+        private  RequestDelegate _next;
         private MessageOptions _options;
 
-        public LocationMiddleware(RequestDelegate next, MessageOptions options)
+        public LocationMiddleware(RequestDelegate next, IOptions<MessageOptions> options)
         {
             _next = next;
-            _options = options;
+            _options = options.Value;
         }
 
         public async Task Invoke(HttpContext context)
