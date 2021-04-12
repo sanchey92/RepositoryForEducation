@@ -29,6 +29,8 @@ namespace Platform
                         ? "Consent Granted\n"
                         : "ConsentWithdrawn");
             }
+
+            await _next(context);
         }
     }
 }
