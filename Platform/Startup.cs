@@ -1,7 +1,9 @@
 using System;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Platform
 {
@@ -13,23 +15,42 @@ namespace Platform
             {
                 opts.CheckConsentNeeded = context => true;
             });
-            
+
             services.AddDistributedMemoryCache();
-            
+
             services.AddSession(options =>
             {
                 options.IdleTimeout = TimeSpan.FromMinutes(30);
                 options.Cookie.IsEssential = true;
             });
+
+            services.AddHsts(opts =>
+            {
+                opts.MaxAge = TimeSpan.FromDays(1);
+                opts.IncludeSubDomains = true;
+            });
         }
 
-        public void Configure(IApplicationBuilder app)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            if (env.IsProduction())
+            {
+                app.UseHsts();
+            }
+
             app.UseDeveloperExceptionPage();
+            app.UseHttpsRedirection();
             app.UseCookiePolicy();
             app.UseMiddleware<ConsentMiddleware>();
             app.UseSession();
             app.UseRouting();
+
+            app.Use(async (context, next) =>
+            {
+                await context.Response
+                    .WriteAsync($"HTTPS Request: {context.Request.IsHttps}\n");
+                await next();
+            });
 
             app.UseEndpoints(endpoints =>
             {
