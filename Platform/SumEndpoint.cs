@@ -1,36 +1,34 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Caching.Distributed;
+using Platform.Models;
 
 namespace Platform
 {
     public class SumEndpoint
     {
-        public async Task Endpoint(HttpContext context, IDistributedCache cache)
+        public async Task Endpoint(HttpContext context, CalculationContext dataContext)
         {
             var count = int.Parse((string) context.Request.RouteValues["count"] ?? string.Empty);
-            var cacheKey = $"sum_{count}";
-            var totalString = await cache.GetStringAsync(cacheKey);
+            long total = dataContext.Calculations
+                .FirstOrDefault(c => c.Count == count)?.Result ?? 0;
 
-            if (totalString == null)
+            if (total == 0)
             {
-                long total = 0;
                 for (var i = 1; i <= count; i++)
                 {
-                    total += 1;
+                    total += i;
                 }
-                totalString = $"({DateTime.Now.ToLongTimeString()} {total})";
 
-                await cache.SetStringAsync(cacheKey, totalString,
-                    new DistributedCacheEntryOptions
-                    {
-                        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(2)
-                    });
+                dataContext.Calculations!
+                    .Add(new Calculation() {Count = count, Result = total});
+                await dataContext.SaveChangesAsync();
             }
 
+            string totalString = $"({DateTime.Now.ToLongTimeString()}) {total}";
             await context.Response
-                .WriteAsync($"({DateTime.Now.ToLongTimeString()}) total for {count}" +
+                .WriteAsync($"({DateTime.Now.ToLongTimeString()}) Total for {count} " +
                             $" values:\n{totalString}\n");
         }
     }
