@@ -5,6 +5,7 @@ using WebApplication.Models;
 
 namespace WebApplication.Controllers
 {
+    [ApiController]
     [Route("api/[controller]")]
     public class ProductsController : ControllerBase
     {
@@ -22,20 +23,24 @@ namespace WebApplication.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<Product> GetProduct(long id)
+        public async Task<IActionResult> GetProduct(long id)
         {
-            return await _dataContext.Products.FindAsync(id);
+            var product = await _dataContext.Products.FindAsync(id);
+            return product == null ? NotFound() : Ok(product);
         }
 
         [HttpPost]
-        public async Task SaveProduct([FromBody] Product product)
+        public async Task<IActionResult> SaveProduct(ProductBindingTarget target)
         {
+            var product = target.ToProduct();
             await _dataContext.Products.AddAsync(product);
             await _dataContext.SaveChangesAsync();
+            return Ok(product);
+
         }
 
         [HttpPut]
-        public async Task UpdateProduct([FromBody] Product product)
+        public async Task UpdateProduct(Product product)
         {
             _dataContext.Update(product);
             await _dataContext.SaveChangesAsync();
@@ -46,6 +51,12 @@ namespace WebApplication.Controllers
         {
             _dataContext.Products.Remove(new Product {ProductId = id});
             await _dataContext.SaveChangesAsync();
+        }
+
+        [HttpGet("redirect")]
+        public IActionResult Redirect()
+        {
+            return RedirectToAction(nameof(GetProduct),new {Id = 1});
         }
     }
 }
