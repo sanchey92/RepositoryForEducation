@@ -9,19 +9,35 @@
 <body>
 <h6 class="bg-secondary text-white text-center m-2 p-2">Watersports</h6>
 <div class="m-2">
-    <table class="table table-sm table-striped table-bordered">
+    <table class="table table-sm table-striped table-bordered"
+           data-id="@Model.ProductId">
         <tbody>
         <tr>
-            <th>Name</th><td>@Model.Name</td>
+        <tr>
+            <th>Name</th>
+            <td>
+                @switch (Model.Name)
+                {
+                    case "Kayak":
+                        @:Small Boat
+                        break;
+                    case "Lifejacket":
+                        @:Flotation Aid
+                        break;
+                    default:
+                        @Model.Name
+                        break;
+                }
+            </td>
         </tr>
         <tr>
             <th>Price</th><td>@Model.Price.ToString("c")</td>
         </tr>
         <tr>
-            <th>Category ID</th><td>@Model.CategoryId</td>
+            <th>Tax</th><td>@Model.Price * 0.2m</td>
         </tr>
         <tr>
-            <th>SupplierId</th><td>@Model.SupplierId</td>
+            <th>Tax</th><td>@(Model.Price * 0.2m)</td>
         </tr>
         </tbody>
     </table>
