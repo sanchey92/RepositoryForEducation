@@ -1,7 +1,7 @@
 @model IEnumerable<Product>
 
 @{
-    decimal average = Model.Average(p => p.Price);
+    Layout = null;
 }
 
 <!DOCTYPE html>
@@ -22,13 +22,7 @@
         <tbody>
         @foreach (var p in Model)
         {
-            <tr>
-                <td>@p.Name</td><td>@p.Price</td>
-                <td>
-                    @((p.Price / average * 100).ToString("F1"))
-                    % of average
-                </td>
-            </tr>
+            <partial name="RowPartial" model="p"/>
         }
         </tbody>
     </table>

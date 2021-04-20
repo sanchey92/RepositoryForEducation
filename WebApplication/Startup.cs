@@ -24,12 +24,19 @@ namespace WebApplication
             });
 
             services.AddControllersWithViews().AddRazorRuntimeCompilation();
+
+            services.AddDistributedMemoryCache();
+            services.AddSession(options =>
+            {
+                options.Cookie.IsEssential = true;
+            });
         }
 
         public void Configure(IApplicationBuilder app, DataContext dataContext)
         {
             app.UseDeveloperExceptionPage();
             app.UseStaticFiles();
+            app.UseSession();
             app.UseRouting();
             
             app.UseEndpoints(endpoints =>
